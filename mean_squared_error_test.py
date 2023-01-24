@@ -75,25 +75,24 @@ def mean_squared_error_test():
                 # dzdx2
                 dzdx2[t, i] = torch.sum(torch.mul(dzdy[0], v))
 
-    # gradcheck
-    gradcheck = torch.autograd.gradcheck(mean_squared_error, (X1, X2), eps=DELTA, atol=TOL)
-
     # results
     is_correct = True
     err = {'dzdx1': 0, 'dzdx2': 0}
     err['dzdx1'] = torch.max(torch.abs(dzdx1 - X1.grad))
     err['dzdx2'] = torch.max(torch.abs(dzdx2 - X2.grad))
 
+    # print(dzdx1)
+    # print(X1.grad)
     for p in err:
         if err[p] >= TOL:
             is_correct = False
-    
+
+    # gradcheck
+    gradcheck = torch.autograd.gradcheck(mean_squared_error, (X1, X2), eps=DELTA, atol=TOL)
     if not gradcheck:
         is_correct = False
 
     print(is_correct)
-    print(err)
-    print("tolerance: "+str(TOL))
     return is_correct, err
 
 

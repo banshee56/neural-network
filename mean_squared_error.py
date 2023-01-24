@@ -18,7 +18,7 @@ class MeanSquaredError(torch.autograd.Function):
         y: (scalar) The mean squared error between x1 and x2
         """
         ctx.save_for_backward(x1, x2)
-        y = torch.sum((x1 - x2)**2)/x1.shape[1]
+        y = torch.mean((x1 - x2)**2)
         return y
 
     @staticmethod
@@ -38,11 +38,11 @@ class MeanSquaredError(torch.autograd.Function):
         """
         x1, x2 = ctx.saved_tensors
 
-        m = x1.shape[1] # number of attributes
-        dydx1 = (2/m)*(x1-x2)
-        dydx2 = -(2/m)*(x1-x2)
+        m = x1.numel() # number of attributes
+        dydx1 = torch.multiply(2/m, x1-x2)
+        dydx2 = -torch.multiply(2/m, x1-x2)
 
-        dzdx1 = dzdy * dydx1
-        dzdx2 = dzdy * dydx2
+        dzdx1 = torch.multiply(dzdy, dydx1)
+        dzdx2 = torch.multiply(dzdy, dydx2)
 
         return dzdx1, dzdx2

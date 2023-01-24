@@ -40,7 +40,79 @@ def generalized_logistic_test():
     generalized_logistic = GeneralizedLogistic.apply
     # %%%  DO NOT EDIT ABOVE %%%
 
+    # analytical gradient
+    y = generalized_logistic(X, L, U, G)
+    z = torch.mean(y)
+    z.backward()
+    
+    dzdy = torch.autograd.grad(z, y)
 
+    # numerical gradient
+    with torch.no_grad():
+        # dzdx
+        dzdx = torch.zeros(X.shape[0], X.shape[1])
+        for t in range(X.shape[0]):
+            for i in range(X.shape[1]):
+                # x+
+                xp = X.clone()
+                xp[t, i] += DELTA
+                # x-
+                xn = X.clone()
+                xn[t, i] -= DELTA
+
+                # second term
+                v = (generalized_logistic(xp, L, U, G) - generalized_logistic(xn, L, U, G))/(2*DELTA)
+                # dzdx
+                dzdx[t, i] = torch.sum(torch.mul(dzdy[0], v))
+        
+        # dzdl
+        lp = L.clone()      # l+
+        lp += DELTA
+        ln = L.clone()      # l-
+        ln -= DELTA
+        v = (generalized_logistic(X, lp, U, G) - generalized_logistic(X, ln, U, G))/(2*DELTA)   # second term
+        dzdl = torch.sum(torch.mul(dzdy[0], v))
+
+        # dzdu
+        up = U.clone()      # u+
+        up += DELTA
+        un = U.clone()      # u-
+        un -= DELTA
+        v = (generalized_logistic(X, L, up, G) - generalized_logistic(X, L, un, G))/(2*DELTA)   # second term
+        dzdu = torch.sum(torch.mul(dzdy[0], v))
+
+        # dzdg
+        gp = G.clone()      # u+
+        gp += DELTA
+        gn = G.clone()      # u-
+        gn -= DELTA
+        v = (generalized_logistic(X, L, U, gp) - generalized_logistic(X, L, U, gn))/(2*DELTA)   # second term
+        dzdg = torch.sum(torch.mul(dzdy[0], v))
+
+    # results
+    is_correct = True
+    err = {'dzdx': 0, 'dzdl': 0, 'dzdu': 0, 'dzdg': 0, 'y': 0}
+
+    # forward check with TOL1
+    err['y'] = torch.max(torch.abs(torch.tanh(X) - y))
+    if err['y'] >= TOL1:
+        is_correct = False
+
+    # gradcheck with TOL2
+    gradcheck = torch.autograd.gradcheck(generalized_logistic, (X, L, U, G) , eps=DELTA, atol=TOL2)
+    if not gradcheck:
+        is_correct = False
+
+    # backward check with TOL2
+    err['dzdx'] = torch.max(torch.abs(dzdx - X.grad))
+    err['dzdl'] = torch.max(torch.abs(dzdl - L.grad))
+    err['dzdu'] = torch.max(torch.abs(dzdu - U.grad))
+    err['dzdg'] = torch.max(torch.abs(dzdg - G.grad))
+    for p in err:
+        if err[p] >= TOL2:
+            is_correct = False
+
+    print(is_correct)
     return is_correct, err
 
 
