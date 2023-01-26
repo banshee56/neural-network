@@ -2,7 +2,9 @@ import torch
 
 
 class FullyConnected(torch.autograd.Function):
-    """
+    @staticmethod
+    def forward(ctx, x, w, b):
+        """
         Computes the output of the fully_connected function given in the assignment
 
         Arguments
@@ -16,14 +18,14 @@ class FullyConnected(torch.autograd.Function):
         -----
         y (Tensor): of size (T x m), the outputs of the fully_connected operator
         """
-    @staticmethod
-    def forward(ctx, x, w, b):
         ctx.save_for_backward(x, w, b)
         y = torch.mm(x, w) + b
 
         return y
 
-    """
+    @staticmethod
+    def backward(ctx, dz_dy):
+        """
         back-propagates the gradients with respect to the inputs
         ctx: a PyTorch context object.
         dz_dy (Tensor): of size (T x m), the gradients with respect to the output argument y
@@ -34,8 +36,6 @@ class FullyConnected(torch.autograd.Function):
         dzdw (Tenor): of size (n x m), the gradients with respect to w
         dzdb (Tensor): of size (m), the gradients with respect to b
         """
-    @staticmethod
-    def backward(ctx, dz_dy):
         x, w, b = ctx.saved_tensors
         dydx = w
         dydw = x
