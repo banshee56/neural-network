@@ -92,7 +92,7 @@ def mean_squared_error_test():
     if not gradcheck:
         is_correct = False
 
-    print(is_correct)
+    torch.save([is_correct , err], 'mean_squared_error_test_results.pt')
     return is_correct, err
 
 

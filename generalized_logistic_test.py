@@ -112,7 +112,7 @@ def generalized_logistic_test():
         if err[p] >= TOL2:
             is_correct = False
 
-    print(is_correct)
+    torch.save([is_correct , err], 'generalized_logistic_test_results.pt')
     return is_correct, err
 
 

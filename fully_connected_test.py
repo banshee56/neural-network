@@ -110,6 +110,7 @@ def fully_connected_test():
     if not gradcheck:
         is_correct = False
 
+    torch.save([is_correct , err], 'fully_connected_test_results.pt')
     return is_correct, err
 
 

@@ -25,7 +25,19 @@ def create_net(input_features, hidden_units, non_linearity, output_size):
     net = nn.Sequential()
 
     # add the hidden layers
+    for l in range(len(hidden_units)):
+        # each hidden layer is composed of a fully connected layer
+        fc_layer = "fc_"+str(l)
+        if l-1 < 0:
+            net.add_module(fc_layer, FullyConnectedLayer(input_features, hidden_units[l]))
+        else:
+            net.add_module(fc_layer, FullyConnectedLayer(hidden_units[l-1], hidden_units[l]))
+
+        # followed by a generalized logistic layer
+        name = non_linearity[l] + "_" + str(l)
+        net.add_module(name, GeneralizedLogisticLayer(non_linearity[l]))
 
     # add output layer
+    net.add_module('predictions', FullyConnectedLayer(hidden_units[-1], output_size))
 
     return net
